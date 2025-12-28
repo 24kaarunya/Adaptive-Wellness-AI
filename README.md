@@ -10,8 +10,6 @@
 [![OpenAI](https://img.shields.io/badge/OpenAI-API-412991)](https://openai.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.3-38B2AC)](https://tailwindcss.com/)
 
-📹 **[Demo Video](#)** | 📄 **[Competition Submission](./COMPETITION_SUBMISSION.md)** | 📚 **[Full Documentation](./docs/)**
-
 ---
 
 ## 🎯 Project Overview
@@ -642,16 +640,16 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 - **OpenAI** for GPT-4 Turbo API enabling agentic reasoning
 - **Vercel** for Next.js framework and deployment platform
 - **Prisma** for elegant database toolkit
-- **nnov-AI-tion** for inspiring this competition challenge
+- **Innov-AI-tion** for inspiring this competition challenge
 
 ---
 
 ## 📧 Contact
 
-**Team:** [Your Team Name]  
-**Email:** [your-email@example.com]  
-**GitHub:** [@yourusername](https://github.com/yourusername)  
-**Competition:** nnov-AI-tion Healthcare & Fitness Agentic Systems Challenge
+**Team:** [K-Tech]  
+**Email:** [kaarunyam.24msc@kongu.edu]  
+**GitHub:** (https://github.com/24kaarunya) (https://github.com/Kanishga04102006) 
+**Competition:**Innov-AI-tion Healthcare & Fitness Agentic Systems Challenge
 
 ---
 
