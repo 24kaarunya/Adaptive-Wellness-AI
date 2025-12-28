@@ -1,0 +1,366 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ===== Module 0: Authentication & Identity =====
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?   // null for OAuth users
+  image         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // OAuth accounts
+  accounts      Account[]
+  sessions      Session[]
+
+  // Wellness data
+  wellnessProfile WellnessProfile?
+  goals           Goal[]
+  plans           Plan[]
+  monitoringData  MonitoringData[]
+  reflections     Reflection[]
+  adaptations     Adaptation[]
+  analytics       Analytics[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// ===== Module 1: User Context & Wellness Profile =====
+model WellnessProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Ambiguous intent capture
+  primaryIntent       String // "get healthier", "lose weight", etc.
+  secondaryIntents    String // JSON-encoded array: Additional motivations
+
+  // Constraints
+  availableTime       Int // minutes per day
+  energyLevel         String // "low", "medium", "high"
+  currentRoutine      String // Description of current habits
+  barriers            String // JSON-encoded array: Time, motivation, injury, etc.
+
+  // Motivation style
+  motivationStyle     String // "achievement", "social", "health", "appearance"
+  preferredActivities String // JSON-encoded array: walking, gym, yoga, etc.
+
+  // Adherence risk assessment
+  adherenceRisk       String // "low", "medium", "high"
+  historicalFailures  String // JSON-encoded array: Past failed attempts and reasons
+  
+  // Cognitive preferences
+  planningPreference  String // "structured", "flexible", "minimal"
+  feedbackFrequency   String // "daily", "weekly", "as-needed"
+
+  // Trust signals
+  trustLevel          Float @default(0.5) // 0-1 scale
+  preferExplanations  Boolean @default(true)
+
+  @@map("wellness_profiles")
+}
+
+// ===== Module 2: Goal Formulation =====
+model Goal {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Goal structure
+  title          String
+  description    String
+  type           String // "fitness", "nutrition", "sleep", "stress"
+  status         String @default("active") // "active", "paused", "completed", "abandoned"
+
+  // SMART goal components
+  specific       String // What exactly
+  measurable     String // How to measure
+  achievable     String // Why it's achievable given constraints
+  relevant       String // Why it matters to user
+  timeBound      String // Timeline
+
+  // Adaptive properties
+  baselineValue  Float? // Starting point
+  targetValue    Float? // Desired outcome
+  currentValue   Float? // Current progress
+  unit           String? // "steps", "minutes", "kg", etc.
+
+  // Failure tolerance
+  allowedMisses      Int @default(2) // per week
+  recoveryStrategy   String // How to recover from missed days
+  fallbackGoal       String? // Easier version if struggling
+
+  // Sub-goals (for decomposition)
+  parentGoalId   String?
+  parentGoal     Goal?   @relation("GoalHierarchy", fields: [parentGoalId], references: [id])
+  subGoals       Goal[]  @relation("GoalHierarchy")
+
+  // Related data
+  plans          Plan[]
+  monitoringData MonitoringData[]
+
+  @@map("goals")
+}
+
+// ===== Module 3: Adaptive Planning =====
+model Plan {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goalId    String
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Plan metadata
+  title         String
+  description   String
+  status        String @default("active") // "active", "paused", "completed", "superseded"
+  version       Int @default(1) // For tracking plan iterations
+
+  // Timeline
+  startDate     DateTime
+  endDate       DateTime
+  currentWeek   Int @default(1)
+
+  // Strategy
+  strategyType  String // "gradual", "intensive", "maintenance"
+  activities    String // JSON-encoded: Structured activities by day/week
+  
+  // Load estimation
+  physicalLoad      Float // 0-10 scale
+  cognitiveLoad     Float // 0-10 scale
+  sustainabilityScore Float // 0-10 scale
+
+  // Fallback plans
+  hasFallback       Boolean @default(true)
+  fallbackPlan      String? // JSON-encoded: Easier version of plan
+  recoveryPlan      String? // JSON-encoded: How to get back on track
+
+  // Progression logic
+  progressionRules  String // JSON-encoded: When/how to increase difficulty
+  regressionRules   String // JSON-encoded: When/how to decrease difficulty
+
+  // Related data
+  monitoringData    MonitoringData[]
+
+  @@map("plans")
+}
+
+// ===== Module 4: Monitoring & Behavioral Signals =====
+model MonitoringData {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goalId    String?
+  goal      Goal?    @relation(fields: [goalId], references: [id])
+  planId    String?
+  plan      Plan?    @relation(fields: [planId], references: [id])
+  createdAt DateTime @default(now())
+  date      DateTime // Date of the recorded activity
+
+  // Activity data
+  activityType      String // "workout", "meal", "sleep", "check-in"
+  completed         Boolean @default(false)
+  value             Float? // Numeric value (steps, minutes, etc.)
+  unit              String?
+  
+  // Qualitative signals
+  energyLevel       String? // "low", "medium", "high"
+  motivation        String? // "low", "medium", "high"
+  difficulty        String? // "easy", "moderate", "hard"
+  enjoyment         String? // "low", "medium", "high"
+  notes             String?
+
+  // Behavioral trajectory signals
+  isDeviation       Boolean @default(false)
+  deviationType     String? // "missed", "partial", "exceeded"
+  streakCount       Int @default(0)
+  consecutiveMisses Int @default(0)
+
+  // Context
+  timeOfDay         String?
+  location          String?
+  social            Boolean? // Did activity with others
+
+  @@map("monitoring_data")
+  @@index([userId, date])
+}
+
+// ===== Module 5: Decision & Adaptation =====
+model Adaptation {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  // Trigger
+  triggerType       String // "deviation", "burnout", "success", "stagnation"
+  triggerData       String // JSON-encoded: Context that triggered adaptation
+
+  // Decision reasoning
+  detectedIssue     String
+  analysisReasoning String // Why adaptation is needed
+  
+  // Adaptation action
+  actionType        String // "replan", "adjust-goal", "change-strategy", "pause"
+  actionDetails     String // JSON-encoded: Specific changes made
+  
+  // Autonomous vs user-initiated
+  autonomous        Boolean @default(true)
+  userApproved      Boolean?
+  
+  // Outcome
+  implemented       Boolean @default(false)
+  implementedAt     DateTime?
+  expectedImpact    String
+  actualImpact      String?
+
+  @@map("adaptations")
+}
+
+// ===== Module 6: Self-Reflection =====
+model Reflection {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  
+  // Reflection period
+  periodStart       DateTime
+  periodEnd         DateTime
+  reflectionType    String // "weekly", "milestone", "failure", "success"
+
+  // Intended vs Actual comparison
+  intendedBehavior  String // JSON-encoded: What was planned
+  actualBehavior    String // JSON-encoded: What happened
+
+  // Analysis
+  successFactors    String // JSON-encoded array: What went well
+  failureFactors    String // JSON-encoded array: What went wrong
+  externalFactors   String // JSON-encoded array: Context that influenced outcomes
+
+  // Insights
+  patterns          String // JSON-encoded array: Identified patterns
+  rootCauses        String // JSON-encoded array: Deep reasons for success/failure
+
+  // Learning
+  lessonsLearned    String // JSON-encoded array
+  heuristicUpdates  String // JSON-encoded: Updates to reasoning heuristics
+
+  // Recommendations
+  recommendations   String // JSON-encoded array
+  confidenceScore   Float // 0-1 confidence in analysis
+
+  @@map("reflections")
+}
+
+// ===== Module 9: Analytics =====
+model Analytics {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @default(now())
+  
+  // Habit consistency metrics
+  consistencyScore      Float // 0-100
+  weeklyAdherence       Float // 0-100
+  monthlyAdherence      Float // 0-100
+  longestStreak         Int
+  currentStreak         Int
+  
+  // Recovery metrics
+  totalDeviations       Int
+  successfulRecoveries  Int
+  recoverySuccessRate   Float
+  averageRecoveryTime   Float // days
+  
+  // Adaptation metrics
+  totalAdaptations      Int
+  autonomousAdaptations Int
+  userInitiatedChanges  Int
+  adaptationFrequency   Float // per week
+  
+  // Trust & clarity
+  userTrustScore        Float // 0-100 from feedback
+  explanationClarity    Float // 0-100 from feedback
+  systemTransparency    Float // 0-100 derived
+  
+  // Engagement
+  checkInFrequency      Float // per week
+  feedbackProvided      Int
+  goalsActive           Int
+  goalsCompleted        Int
+  
+  // Behavioral trajectory
+  trajectoryTrend       String // "improving", "stable", "declining"
+  burnoutRisk           Float // 0-100
+  motivationTrend       String // "increasing", "stable", "decreasing"
+
+  @@map("analytics")
+  @@index([userId, date])
+}
+
+// ===== Agent System Metadata =====
+model AgentLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  agentType         String // "goal-formulation", "planning", "monitoring", etc.
+  action            String // What the agent did
+  input             String // JSON-encoded: Agent input
+  reasoning         String // JSON-encoded: Agent's reasoning process
+  output            String // JSON-encoded: Agent output
+  executionTime     Float // milliseconds
+  
+  userId            String?
+  
+  @@map("agent_logs")
+  @@index([userId, createdAt])
+}
