@@ -1,4 +1,4 @@
-# Adaptive Wellness AI
+# Adaptive Wellness AI.
 
 > **A Self-Reflective Agentic System for Sustainable Human Health & Fitness Behavior**
 
