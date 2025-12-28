@@ -2,15 +2,13 @@
 
 > **A Self-Reflective Agentic System for Sustainable Human Health & Fitness Behavior**
 
-🏆 **nnov-AI-tion Competition Submission** | Healthcare & Fitness Agentic Systems Challenge
+🏆 **Innov-AI-tion Competition Submission** | Healthcare & Fitness Agentic Systems Challenge
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.7-2D3748)](https://www.prisma.io/)
 [![OpenAI](https://img.shields.io/badge/OpenAI-API-412991)](https://openai.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.3-38B2AC)](https://tailwindcss.com/)
-
-📹 **[Demo Video](#)** | 📄 **[Competition Submission](./COMPETITION_SUBMISSION.md)** | 📚 **[Full Documentation](./docs/)**
 
 ---
 
@@ -648,10 +646,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ## 📧 Contact
 
-**Team:** [Your Team Name]  
-**Email:** [your-email@example.com]  
-**GitHub:** [@yourusername](https://github.com/yourusername)  
-**Competition:** nnov-AI-tion Healthcare & Fitness Agentic Systems Challenge
+**Team:** [K-Tech]  
+**Email:** [kaarunyam.24msc@kongu.edu] [kanishgasathiyamoorthy.24msc@kongu.edu] 
+**GitHub:** [@yourusername](https://github.com/24kaarunya)  
+**Competition:** Innov-AI-tion Healthcare & Fitness Agentic Systems Challenge
 
 ---
 
